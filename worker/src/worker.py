@@ -11,8 +11,9 @@ from .utils import print_error, print_data
 
 def get_parser() -> ArgumentParser:
     parser = ArgumentParser("dualis-scanner-worker")
-    parser.add_argument("uname", type=str, help="Dualis username.")
-    parser.add_argument("pwd", type=str, help="Dualis password.")
+    parser.add_argument("uname", nargs=1, help="Dualis username.")
+    parser.add_argument("pwd", nargs=1, type=str, help="Dualis password.")
+    parser.add_argument("--driver", type=str, help="chromedriver dir")
     return parser
 
 
@@ -21,7 +22,7 @@ def main():
         argParser = get_parser()
         args = argParser.parse_args()
 
-        print_data(get_courses(args.uname, args.pwd))
+        print_data(get_courses(args.uname[0], args.pwd[0], args.driver[0]))
     except NoSuchElementException as nse:
         print_error(nse.msg)
         exit(STATUSCODE.CRASH)
@@ -36,11 +37,13 @@ def get_grade(string: str) -> float:
     return grade
 
 
-def get_courses(uname: str, pwd: str) -> List[Course]:
+def get_courses(uname: str, pwd: str, driver_dir: str = None) -> List[Course]:
     options = Options()
     options.headless = True
 
-    driver = Chrome(options)
+    if driver_dir is None:
+        driver_dir = "/usr/local/bin/chromedriver"
+    driver = Chrome(executable_path=driver_dir, options=options)
     driver.implicitly_wait(1)
     driver.get(DUALIS_URL)
 

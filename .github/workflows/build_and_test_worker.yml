@@ -17,4 +17,4 @@ jobs:
       - name: Install webdriver
         run: sudo apt-get install chromium-chromedriver
       - name: Run worker tests
-        run: dualis-scanner-worker --uname=${{ secrets.DUALIS_UNAME }} --pwd=${{ secrets.DUALIS_PWD }} --driver=/usr/local/bin/chromedriver
+        run: dualis-scanner-worker ${{ secrets.DUALIS_UNAME }} ${{ secrets.DUALIS_PWD }} --driver=/usr/local/bin/chromedriver
