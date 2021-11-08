@@ -6,6 +6,7 @@ from .constants import DUALIS_URL, STATUSCODE, WINDOWOPEN_TIMEOUT
 from argparse import ArgumentParser
 from .models import Exam, Course
 from typing import List
+from .models.course import CourseCompletion
 from .utils import print_error, print_data
 from logging import basicConfig, debug, exception, error, warn, DEBUG, WARN
 from datetime import datetime
@@ -88,6 +89,13 @@ def get_courses(uname: str, pwd: str, driver_dir: str = None) -> List[Course]:
 
         for course in driver.find_elements(By.XPATH, "/html/body/div[3]/div[3]/div[2]/div[2]/div/table/tbody/tr")[0:-1]:
             course_data = course.find_elements(By.TAG_NAME, "td")
+            completion = CourseCompletion.Unknown
+            if course_data[4].text != "":
+                if course_data[4].text == "bestanden":
+                    completion = CourseCompletion.Passed
+                else:
+                    completion = CourseCompletion.Failed
+            course = Course(course_data[0].text, course_data[1].text, get_grade(course_data[2].text), get_grade(course_data[3].text), completion, [])
             debug(f"Parsing course {course_data[0].text}")
             course_data[5].click()
 
@@ -109,7 +117,8 @@ def get_courses(uname: str, pwd: str, driver_dir: str = None) -> List[Course]:
                 #todo attemptnum
                 exams.append(Exam(1, exam_data[0].text, exam_data[1].text, exam_data[2].text, get_grade(exam_data[3].text)))
 
-            courses.append(Course(course_data[0].text, course_data[1].text, get_grade(course_data[2].text), get_grade(course_data[3].text), exams))
+            course.Exams = exams
+            courses.append(course)
 
             debug("Finished course. Closing window.")
             driver.close()
