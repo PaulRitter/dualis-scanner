@@ -4,7 +4,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
 from .constants import DUALIS_URL, STATUSCODE
 from argparse import ArgumentParser
-from .models import Exam, Course
+from src.models import Exam, Course
 from typing import List
 from .utils import print_error, print_data
 
