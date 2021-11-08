@@ -20,6 +20,10 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="7be0a9d3-427a-431d-8d9b-1712d828c9e7" name="Default Changelist" comment="">
+      <change afterPath="$PROJECT_DIR$/requirements_tests.txt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tests/__init__.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../.github/workflows/build_and_test_worker.yml" beforeDir="false" afterPath="$PROJECT_DIR$/../.github/workflows/build_and_test_worker.yml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/setup.py" beforeDir="false" afterPath="$PROJECT_DIR$/setup.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -61,7 +65,7 @@
       <option name="presentableId" value="Default" />
       <updated>1636363127711</updated>
       <workItem from="1636363138193" duration="5857000" />
-      <workItem from="1636372148221" duration="474000" />
+      <workItem from="1636372148221" duration="1237000" />
     </task>
     <task id="LOCAL-00001" summary="ignores venv">
       <created>1636363280617</created>
