@@ -83,7 +83,10 @@ def get_courses(uname: str, pwd: str, driver_dir: str = None) -> List[Course]:
     main_window = driver.window_handles[0]
 
     courses = list()
-    for semester in driver.find_element(By.ID, "semester").find_elements(By.TAG_NAME, "option"):
+    semester_len = len(driver.find_element(By.ID, "semester").find_elements(By.TAG_NAME, "option"))
+
+    for semester_idx in range(semester_len):
+        semester = driver.find_element(By.ID, "semester").find_elements(By.TAG_NAME, "option")[semester_idx]
         debug(f"Selecting semester {semester.text}.")
         semester.click()
 
