@@ -69,7 +69,22 @@ def get_courses(uname: str, pwd: str, driver_dir: str = None) -> List[Course]:
     driver.get(DUALIS_URL)
 
     debug("Logging in...")
-    driver.find_element(By.ID, "field_user").send_keys(uname)
+    timeout = time() + WINDOWOPEN_TIMEOUT
+    pageOpened = False
+    while time() < timeout:
+        try:
+            driver.find_element(By.ID, "field_user").send_keys(uname)
+            pageOpened = True
+            break
+        except NoSuchElementException:
+            sleep(0.25)
+
+    if not pageOpened:
+        error(f"Dualis main page didn't open in {WINDOWOPEN_TIMEOUT} seconds.")
+        exit(STATUSCODE.CRASH)
+    else:
+        debug(f"Took dualis {WINDOWOPEN_TIMEOUT - timeout - time()} seconds to open... yeez.")
+
     driver.find_element(By.ID, "field_pass").send_keys(pwd)
     driver.find_element(By.ID, "logIn_btn").click()
 
