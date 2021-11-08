@@ -1,4 +1,4 @@
-name: Build and test worker
+name: Build, test (& deploy) worker
 
 on: [pull_request, push]
 
@@ -18,3 +18,11 @@ jobs:
         run: sudo apt-get install chromium-chromedriver
       - name: Run worker tests
         run: dualis-scanner-worker ${{ secrets.DUALIS_UNAME }} ${{ secrets.DUALIS_PWD }} --driver=/usr/bin/chromedriver -v --dry
+      - name: Deploy worker
+        if: ${{ github.event_name == 'push' }}
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.HOST_USERNAME }}
+          key: ${{ secrets.HOST_KEY }}
+          script: cd dualis-scanner/worker && git pull
