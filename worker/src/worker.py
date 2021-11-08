@@ -38,7 +38,7 @@ def main():
         basicConfig(level=level)
 
     try:
-        print_data(get_courses(args.uname[0], args.pwd[0], args.driver[0]))
+        print_data(get_courses(args.uname[0], args.pwd[0], args.driver))
     except NoSuchElementException as nse:
         exception(nse)
         exit(STATUSCODE.CRASH)
