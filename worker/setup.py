@@ -16,7 +16,7 @@ def get_install_requires():
 setup(
     name="dualis-scanner-worker",
     version=get_version(),
-    packages=find_packages("./src", exclude=["tests"]),
+    packages=find_packages(".", exclude=["tests"]),
     entry_points={"console_scripts": ["dualis-scanner-worker=src.worker:main"]},
     install_requires=get_install_requires()
 )
