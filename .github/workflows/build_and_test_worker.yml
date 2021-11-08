@@ -13,6 +13,6 @@ jobs:
       - name: Install worker
         run: |
           cd worker/
-          pip install . --use-feature=in-tree-build
+          pip install .
       - name: Run worker tests
         run: echo "todo"

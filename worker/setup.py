@@ -17,6 +17,6 @@ setup(
     name="dualis-scanner-worker",
     version=get_version(),
     packages=find_packages(".", exclude=["unittests", "integrationtests"]),
-    entry_points={"console_scripts": ["dualis-scanner-worker=dualis-scanner-worker.worker:main"]},
+    entry_points={"console_scripts": ["dualis-scanner-worker=worker:main"]},
     install_requires=get_install_requires()
 )

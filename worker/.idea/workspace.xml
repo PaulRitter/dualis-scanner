@@ -20,7 +20,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="7be0a9d3-427a-431d-8d9b-1712d828c9e7" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/setup.py" beforeDir="false" afterPath="$PROJECT_DIR$/setup.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -61,7 +61,7 @@
       <option name="presentableId" value="Default" />
       <updated>1636363127711</updated>
       <workItem from="1636363138193" duration="5857000" />
-      <workItem from="1636372148221" duration="355000" />
+      <workItem from="1636372148221" duration="474000" />
     </task>
     <task id="LOCAL-00001" summary="ignores venv">
       <created>1636363280617</created>
