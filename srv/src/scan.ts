@@ -33,8 +33,9 @@ export function scan(userData: UserHash, res: any): void {
 
     const [ username, password, ] = decryptedCredentials.split(CREDENTIAL_SPLITTER);
     // TODO: Run actual worker script
-    exec(`echo "${username} : ${password}"`, (err, stdout, stderr) => {
+    exec(`dualis-scanner-worker ${process.env.DUALIS_USERNAME} ${process.env.DUALIS_PWD} --driver=${process.env.CHROMEDRIVER_PATH}/chromedriver --dry`, (err, stdout, stderr) => {
         console.log(stdout, stderr);
+        console.log("Finished scanning");
     });
 
     // Mock
