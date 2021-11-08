@@ -17,3 +17,11 @@ class Course:
         self.Credits = credits
         self.Passed = passed
         self.Exams = exams
+
+    def toDict(self) -> dict:
+        variables = vars(self)
+        for exam in variables['Exams']:
+            variables['Exams'][exam] = vars(variables['Exams'][exam])
+
+        variables['Passed'] = int(variables['Passed'])
+        return variables

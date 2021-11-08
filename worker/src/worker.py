@@ -7,7 +7,6 @@ from argparse import ArgumentParser
 from .models import Exam, Course
 from typing import List
 from .models.course import CourseCompletion
-from .utils import print_error, print_data
 from logging import basicConfig, debug, exception, error, warn, DEBUG, WARN
 from datetime import datetime
 from time import time, sleep
@@ -20,6 +19,7 @@ def get_parser() -> ArgumentParser:
     parser.add_argument("--driver", type=str, help="chromedriver dir")
     parser.add_argument("--logdir", type=str, help="log dir")
     parser.add_argument("-v", action="store_true", help="verbose logging")
+    parser.add_argument("--dry", action="store_true", help="set if you dont want to return any data")
     return parser
 
 
@@ -39,7 +39,9 @@ def main():
         basicConfig(level=level)
 
     try:
-        print_data(get_courses(args.uname[0], args.pwd[0], args.driver))
+        data = get_courses(args.uname[0], args.pwd[0], args.driver)
+        if not args.dry:
+            print([x.toDict() for x in data])
     except NoSuchElementException as nse:
         exception(nse)
         exit(STATUSCODE.CRASH)
