@@ -69,9 +69,9 @@ def get_courses(uname: str, pwd: str, driver_dir: str = None) -> List[Course]:
     driver.get(DUALIS_URL)
 
     debug("Logging in...")
-    timeout = time() + WINDOWOPEN_TIMEOUT
+    start = time()
     pageOpened = False
-    while time() < timeout:
+    while time() < start+WINDOWOPEN_TIMEOUT:
         try:
             driver.find_element(By.ID, "field_user").send_keys(uname)
             pageOpened = True
@@ -83,7 +83,7 @@ def get_courses(uname: str, pwd: str, driver_dir: str = None) -> List[Course]:
         error(f"Dualis main page didn't open in {WINDOWOPEN_TIMEOUT} seconds.")
         exit(STATUSCODE.CRASH)
     else:
-        debug(f"Took dualis {WINDOWOPEN_TIMEOUT - timeout - time()} seconds to open... yeez.")
+        debug(f"Took dualis {time() - start} seconds to open... yeez.")
 
     driver.find_element(By.ID, "field_pass").send_keys(pwd)
     driver.find_element(By.ID, "logIn_btn").click()
