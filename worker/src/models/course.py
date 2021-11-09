@@ -20,8 +20,10 @@ class Course:
 
     def toDict(self) -> dict:
         variables = vars(self)
+        exams = list()
         for exam in variables['Exams']:
-            variables['Exams'][exam] = vars(variables['Exams'][exam])
+            exams.append(vars(exam))
+        variables['Exams'] = exams
 
         variables['Passed'] = int(variables['Passed'])
         return variables
