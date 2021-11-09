@@ -26,3 +26,4 @@ jobs:
           username: ${{ secrets.HOST_USERNAME }}
           key: ${{ secrets.HOST_KEY }}
           script: cd dualis-scanner && git pull && cd worker && pip install . --upgrade --no-deps --force-reinstall
+          timeout: 2m
