@@ -4,8 +4,10 @@ import bodyParser from "body-parser";
 import { authMockTable } from "./dbMock";
 import { UserHash } from "./db/types";
 import { scan } from "./scan";
+import dotenv from "dotenv";
+dotenv.config();
 
-const PORT = process.env.port ?? 5000;
+const PORT = process.env.PORT ?? 5000;
 
 const app = express();
 
