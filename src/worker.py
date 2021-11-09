@@ -57,7 +57,7 @@ def main():
     try:
         data = get_courses(args)
         if not args.dry:
-            dumps([x.toDict() for x in data])
+            print(dumps([x.toDict() for x in data]))
     except NoSuchElementException as nse:
         exception(nse)
         exit(STATUSCODE.CRASH.value)
