@@ -131,7 +131,7 @@ def get_courses(args) -> List[Course]:
         debug(f"Selecting semester {semester.text}.")
         semester.click()
 
-        for course in driver.find_elements(By.XPATH, "/html/body/div[3]/div[3]/div[2]/div[2]/div/table/tbody/tr")[0:-1]:
+        for course in driver.find_elements(By.XPATH, "/html/body/div[3]/div[3]/div[2]/div[2]/div/table/tbody/tr")[:-1]:
             course_data = course.find_elements(By.TAG_NAME, "td")
             completion = CourseCompletion.Unknown
             if course_data[4].text != "":
@@ -162,7 +162,7 @@ def get_courses(args) -> List[Course]:
 
             debug("Parsing exams.")
             exams = list()
-            for exam in driver.find_elements(By.XPATH, "/html/body/div/form/table[1]/tbody/tr[count(./td) = 6]"):
+            for exam in driver.find_elements(By.XPATH, "/html/body/div/form/table[1]/tbody/tr[count(./td) = 6]")[:-1]:
                 exam_data = exam.find_elements(By.TAG_NAME, "td")
 
                 #todo attemptnum
