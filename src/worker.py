@@ -6,7 +6,7 @@ from argparse import ArgumentParser
 from .models import Exam, Course
 from typing import List
 from .models.course import CourseCompletion
-from logging import basicConfig, debug, exception, error, warn, DEBUG, WARN
+from logging import basicConfig, debug, exception, error, INFO, WARN, root
 from datetime import datetime
 from time import time, sleep
 from enum import Enum
@@ -43,7 +43,7 @@ def main():
         exit(STATUSCODE.CRASH.value)
 
     if args.v:
-        level = DEBUG
+        level = INFO
     else:
         level = WARN
 
@@ -181,3 +181,7 @@ def get_courses(args) -> List[Course]:
     driver.quit()
 
     return courses
+
+
+if __name__ == "__main__":
+    main()
