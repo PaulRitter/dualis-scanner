@@ -47,7 +47,7 @@ def main():
     else:
         level = WARN
 
-    if args.logdir is not None:
+    if args.logDir is not None:
         #todo logfolder should contain useruid at some point
         #todo logs should not contain uname & pwd
         basicConfig(level=level, filename=f"{args.logDir}/{datetime.now().strftime('%Y%m%d-%H%M%S')}.log")
