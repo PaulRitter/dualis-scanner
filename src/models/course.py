@@ -4,8 +4,8 @@ from enum import Enum
 
 
 class CourseCompletion(Enum):
-    Failed = -1,
-    Unknown = 0,
+    Failed = -1
+    Unknown = 0
     Passed = 1
 
 
