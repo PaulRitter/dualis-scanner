@@ -2,7 +2,6 @@ from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver import Chrome
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
-from .constants import DUALIS_URL, STATUSCODE, WINDOWOPEN_TIMEOUT
 from argparse import ArgumentParser
 from .models import Exam, Course
 from typing import List
@@ -10,22 +9,37 @@ from .models.course import CourseCompletion
 from logging import basicConfig, debug, exception, error, warn, DEBUG, WARN
 from datetime import datetime
 from time import time, sleep
+from enum import Enum
+
+
+class STATUSCODE(Enum):
+    OK = 0
+    INVALID_LOGIN = -1
+    CRASH = -2
 
 
 def get_parser() -> ArgumentParser:
     parser = ArgumentParser("dualis-scanner-worker")
-    parser.add_argument("uname", nargs=1, help="Dualis username.")
-    parser.add_argument("pwd", nargs=1, type=str, help="Dualis password.")
-    parser.add_argument("--driver", type=str, help="chromedriver dir")
-    parser.add_argument("--logdir", type=str, help="log dir")
-    parser.add_argument("-v", action="store_true", help="verbose logging")
-    parser.add_argument("--dry", action="store_true", help="set if you dont want to return any data")
+    parser.add_argument("uname", nargs=1, help="Username for dualis login.")
+    parser.add_argument("pwd", nargs=1, type=str, help="Password for dualis login.")
+    parser.add_argument("--driver", type=str, help="The dir to find the chromedriver executable at.")
+    parser.add_argument("--logDir", type=str, help="The dir to which logs are written.")
+    parser.add_argument("-v", action="store_true", help="Set to enable verbose logging.")
+    parser.add_argument("--dry", action="store_true", help="Set if you dont want to return any data.")
+    parser.add_argument("--windowTimeout", type=int, default=10, help="How much time you'd like for the scanner to wait for a window to open on each attempt.")
+    parser.add_argument("--windowTries", type=int, default=3, help="How many times you'd like for the scanner to retry opening a window.")
+    parser.add_argument("--windowCheckWait", type=float, default=0.25, help = "Amount of seconds the scanner should wait until trying to check for an open window again. Cannot be bigger than the windowtimeout value.")
+    parser.add_argument("--url", type=str, default="https://dualis.dhbw.de/", help="The dualis url to open.")
     return parser
 
 
 def main():
     argParser = get_parser()
     args = argParser.parse_args()
+
+    if args.windowCheckWait > args.windowTimeout:
+        error("windowCheckWait is larger than windowTimeout.")
+        exit(STATUSCODE.CRASH.value)
 
     if args.v:
         level = DEBUG
@@ -34,12 +48,13 @@ def main():
 
     if args.logdir is not None:
         #todo logfolder should contain useruid at some point
-        basicConfig(level=level, filename=f"{args.logdir}/{datetime.now().strftime('%Y%m%d-%H%M%S')}.log")
+        #todo logs should not contain uname & pwd
+        basicConfig(level=level, filename=f"{args.logDir}/{datetime.now().strftime('%Y%m%d-%H%M%S')}.log")
     else:
         basicConfig(level=level)
 
     try:
-        data = get_courses(args.uname[0], args.pwd[0], args.driver)
+        data = get_courses(args)
         if not args.dry:
             print([x.toDict() for x in data])
     except NoSuchElementException as nse:
@@ -58,36 +73,42 @@ def get_grade(string: str) -> float:
     return grade
 
 
-def get_courses(uname: str, pwd: str, driver_dir: str = None) -> List[Course]:
+def get_courses(args) -> List[Course]:
     debug("Getting courses")
     options = Options()
     options.headless = True
 
-    if driver_dir is None:
-        driver_dir = "/usr/local/bin/chromedriver"
+    driver_dir = "/usr/local/bin/chromedriver"
+    if args.driver is not None:
+        driver_dir = args.driver
     debug(f"Using driverdir: {driver_dir}")
     driver = Chrome(executable_path=driver_dir, options=options)
     driver.implicitly_wait(1)
-    driver.get(DUALIS_URL)
 
-    debug("Logging in...")
-    start = time()
+    i = 0
     pageOpened = False
-    while time() < start+WINDOWOPEN_TIMEOUT:
-        try:
-            driver.find_element(By.ID, "field_user").send_keys(uname)
-            pageOpened = True
+    while i < args.windowTries:
+        debug(f"Starting attempt {i} of opening the main page.")
+        driver.get(args.url)
+
+        timeout = time()+args.windowTimeout
+        while time() < timeout:
+            try:
+                driver.find_element(By.ID, "field_user").send_keys(args.uname[0])
+                pageOpened = True
+                break
+            except NoSuchElementException:
+                sleep(args.windowCheckWait)
+
+        i += 1
+        if pageOpened:
             break
-        except NoSuchElementException:
-            sleep(0.25)
 
     if not pageOpened:
-        error(f"Dualis main page didn't open in {WINDOWOPEN_TIMEOUT} seconds.")
+        error(f"Dualis main page didn't open in {args.windowTimeout} seconds during {args.windowTries} attempts.")
         exit(STATUSCODE.CRASH.value)
-    else:
-        debug(f"Took dualis {time() - start} seconds to open... yeez.")
 
-    driver.find_element(By.ID, "field_pass").send_keys(pwd)
+    driver.find_element(By.ID, "field_pass").send_keys(args.pwd[0])
     driver.find_element(By.ID, "logIn_btn").click()
 
     try:
@@ -119,14 +140,21 @@ def get_courses(uname: str, pwd: str, driver_dir: str = None) -> List[Course]:
                     completion = CourseCompletion.Failed
             course = Course(course_data[0].text, course_data[1].text, get_grade(course_data[2].text), get_grade(course_data[3].text), completion, [])
             debug(f"Parsing course {course_data[0].text}")
-            course_data[5].click()
 
-            timeout = time()+WINDOWOPEN_TIMEOUT
-            while time() < timeout and len(driver.window_handles) == 1:
-                sleep(0.25)
+            i = 0
+            while i < args.windowTries and len(driver.window_handles) == 1:
+                debug(f"Starting attempt {i} on opening window for course {course.ID}.")
+                course_data[5].click()
+
+                timeout = time()+args.windowTimeout
+                while time() < timeout and len(driver.window_handles) == 1:
+                    sleep(args.windowCheckWait)
+                i += 1
+                if len(driver.window_handles) != 1:
+                    break
 
             if len(driver.window_handles) == 1:
-                error(f"Window for course {course_data[0].text} did not open after {WINDOWOPEN_TIMEOUT} seconds.")
+                error(f"Window for course {course.ID} did not open after {args.windowTimeout} seconds over {args.windowTries} attempts.")
                 continue
 
             driver.switch_to.window(driver.window_handles[1])
