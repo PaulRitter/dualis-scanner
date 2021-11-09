@@ -10,6 +10,7 @@ from logging import basicConfig, debug, exception, error, warn, DEBUG, WARN
 from datetime import datetime
 from time import time, sleep
 from enum import Enum
+from json import dumps
 
 
 class STATUSCODE(Enum):
@@ -56,7 +57,7 @@ def main():
     try:
         data = get_courses(args)
         if not args.dry:
-            print([x.toDict() for x in data])
+            dumps([x.toDict() for x in data])
     except NoSuchElementException as nse:
         exception(nse)
         exit(STATUSCODE.CRASH.value)
