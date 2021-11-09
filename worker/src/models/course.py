@@ -25,5 +25,5 @@ class Course:
             exams.append(vars(exam))
         variables['Exams'] = exams
 
-        variables['Passed'] = int(variables['Passed'].value)
+        variables['Passed'] = variables['Passed'].value
         return variables

@@ -25,4 +25,4 @@ jobs:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.HOST_USERNAME }}
           key: ${{ secrets.HOST_KEY }}
-          script: cd dualis-scanner && git pull && cd worker && pip install . --upgrade --force-reinstall
+          script: cd dualis-scanner && git pull && cd worker && pip install . --upgrade --force-reinstall --no-warn-script-location
