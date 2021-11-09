@@ -44,7 +44,9 @@ def main():
             print([x.toDict() for x in data])
     except NoSuchElementException as nse:
         exception(nse)
-        exit(STATUSCODE.CRASH)
+        exit(STATUSCODE.CRASH.value)
+
+    exit(STATUSCODE.OK.value)
 
 
 def get_grade(string: str) -> float:
@@ -81,7 +83,7 @@ def get_courses(uname: str, pwd: str, driver_dir: str = None) -> List[Course]:
 
     if not pageOpened:
         error(f"Dualis main page didn't open in {WINDOWOPEN_TIMEOUT} seconds.")
-        exit(STATUSCODE.CRASH)
+        exit(STATUSCODE.CRASH.value)
     else:
         debug(f"Took dualis {time() - start} seconds to open... yeez.")
 
@@ -91,7 +93,7 @@ def get_courses(uname: str, pwd: str, driver_dir: str = None) -> List[Course]:
     try:
         if driver.find_element(By.XPATH, "/html/body/div[3]/div[3]/div[2]/div[2]/h1").text == "Benutzername oder Passwort falsch":
             error("Login failed.")
-            exit(STATUSCODE.INVALID_LOGIN)
+            exit(STATUSCODE.INVALID_LOGIN.value)
     except NoSuchElementException:
         pass
 
