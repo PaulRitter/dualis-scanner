@@ -11,12 +11,23 @@ from datetime import datetime
 from time import time, sleep
 from enum import Enum
 from json import dumps
+from sys import stderr
 
 
 class STATUSCODE(Enum):
     OK = 0
     INVALID_LOGIN = -1
     CRASH = -2
+
+
+def doErrorExit(code: STATUSCODE, msg: str = None):
+    res = {
+        "exitCode": code.value
+    }
+    if msg is not None:
+        res["message"] = msg
+    print(dumps(res), file=stderr)
+    exit(code.value)
 
 
 def get_parser() -> ArgumentParser:
@@ -39,8 +50,9 @@ def main():
     args = argParser.parse_args()
 
     if args.windowCheckWait > args.windowTimeout:
-        error("windowCheckWait is larger than windowTimeout.")
-        exit(STATUSCODE.CRASH.value)
+        msg = "windowCheckWait is larger than windowTimeout."
+        error(msg)
+        doErrorExit(STATUSCODE.CRASH, msg)
 
     if args.v:
         level = INFO
@@ -59,7 +71,7 @@ def main():
             print(dumps([x.toDict() for x in data]))
     except NoSuchElementException as nse:
         exception(nse)
-        exit(STATUSCODE.CRASH.value)
+        doErrorExit(STATUSCODE.CRASH)
 
     exit(STATUSCODE.OK.value)
 
@@ -105,8 +117,9 @@ def get_courses(args) -> List[Course]:
             break
 
     if not pageOpened:
-        error(f"Dualis main page didn't open in {args.windowTimeout} seconds during {args.windowTries} attempts.")
-        exit(STATUSCODE.CRASH.value)
+        msg = f"Dualis main page didn't open in {args.windowTimeout} seconds during {args.windowTries} attempts."
+        error(msg)
+        doErrorExit(STATUSCODE.CRASH, msg)
 
     driver.find_element(By.ID, "field_pass").send_keys(args.pwd[0])
     driver.find_element(By.ID, "logIn_btn").click()
@@ -114,7 +127,7 @@ def get_courses(args) -> List[Course]:
     try:
         if driver.find_element(By.XPATH, "/html/body/div[3]/div[3]/div[2]/div[2]/h1").text == "Benutzername oder Passwort falsch":
             error("Login failed.")
-            exit(STATUSCODE.INVALID_LOGIN.value)
+            doErrorExit(STATUSCODE.INVALID_LOGIN)
     except NoSuchElementException:
         pass
 
