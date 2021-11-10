@@ -6,7 +6,7 @@ from argparse import ArgumentParser
 from .models import Exam, Course
 from typing import List
 from .models.course import CourseCompletion
-from logging import basicConfig, debug, exception, error, INFO, WARN, root
+from logging import basicConfig, info, exception, error, INFO, WARN
 from datetime import datetime
 from time import time, sleep
 from enum import Enum
@@ -49,7 +49,6 @@ def main():
 
     if args.logDir is not None:
         #todo logfolder should contain useruid at some point
-        #todo logs should not contain uname & pwd
         basicConfig(level=level, filename=f"{args.logDir}/{datetime.now().strftime('%Y%m%d-%H%M%S')}.log")
     else:
         basicConfig(level=level)
@@ -75,21 +74,21 @@ def get_grade(string: str) -> float:
 
 
 def get_courses(args) -> List[Course]:
-    debug("Getting courses")
+    info("Getting courses")
     options = Options()
     options.headless = True
 
     driver_dir = "/usr/local/bin/chromedriver"
     if args.driver is not None:
         driver_dir = args.driver
-    debug(f"Using driverdir: {driver_dir}")
+    info(f"Using driverdir: {driver_dir}")
     driver = Chrome(executable_path=driver_dir, options=options)
     driver.implicitly_wait(1)
 
     i = 0
     pageOpened = False
     while i < args.windowTries:
-        debug(f"Starting attempt {i} of opening the main page.")
+        info(f"Starting attempt {i} of opening the main page.")
         driver.get(args.url)
 
         timeout = time()+args.windowTimeout
@@ -119,7 +118,7 @@ def get_courses(args) -> List[Course]:
     except NoSuchElementException:
         pass
 
-    debug("Logged in.")
+    info("Logged in.")
     driver.find_element(By.ID, "link000307").click()
     main_window = driver.window_handles[0]
 
@@ -128,7 +127,7 @@ def get_courses(args) -> List[Course]:
 
     for semester_idx in range(semester_len):
         semester = driver.find_element(By.ID, "semester").find_elements(By.TAG_NAME, "option")[semester_idx]
-        debug(f"Selecting semester {semester.text}.")
+        info(f"Selecting semester {semester.text}.")
         semester.click()
 
         for course in driver.find_elements(By.XPATH, "/html/body/div[3]/div[3]/div[2]/div[2]/div/table/tbody/tr")[:-1]:
@@ -140,11 +139,11 @@ def get_courses(args) -> List[Course]:
                 else:
                     completion = CourseCompletion.Failed
             course = Course(course_data[0].text, course_data[1].text, get_grade(course_data[2].text), get_grade(course_data[3].text), completion, [])
-            debug(f"Parsing course {course_data[0].text}")
+            info(f"Parsing course {course_data[0].text}")
 
             i = 0
             while i < args.windowTries and len(driver.window_handles) == 1:
-                debug(f"Starting attempt {i} on opening window for course {course.ID}.")
+                info(f"Starting attempt {i} on opening window for course {course.ID}.")
                 course_data[5].click()
 
                 timeout = time()+args.windowTimeout
@@ -160,7 +159,7 @@ def get_courses(args) -> List[Course]:
 
             driver.switch_to.window(driver.window_handles[1])
 
-            debug("Parsing exams.")
+            info("Parsing exams.")
             exams = list()
             for exam in driver.find_elements(By.XPATH, "/html/body/div/form/table[1]/tbody/tr[count(./td) = 6]")[:-1]:
                 exam_data = exam.find_elements(By.TAG_NAME, "td")
@@ -171,11 +170,11 @@ def get_courses(args) -> List[Course]:
             course.Exams = exams
             courses.append(course)
 
-            debug("Finished course. Closing window.")
+            info("Finished course. Closing window.")
             driver.close()
             driver.switch_to.window(main_window)
 
-    debug("Successfully parsed all exams. Shutting down driver.")
+    info("Successfully parsed all exams. Shutting down driver.")
 
     driver.close()
     driver.quit()
