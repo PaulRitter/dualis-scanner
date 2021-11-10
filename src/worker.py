@@ -94,13 +94,13 @@ def get_courses(args) -> List[Course]:
         driver_dir = args.driver
     info(f"Using driverdir: {driver_dir}")
     driver = Chrome(executable_path=driver_dir, options=options)
-    driver.implicitly_wait(args.windowCheckWait)
 
     i = 0
     pageOpened = False
     while i < args.windowTries:
         info(f"Starting attempt {i} of opening the main page.")
         driver.get(args.url)
+        sleep(args.windowCheckWait)
 
         try:
             driver.find_element(By.ID, "field_user").send_keys(args.uname[0])
@@ -153,6 +153,7 @@ def get_courses(args) -> List[Course]:
             while i < args.windowTries and len(driver.window_handles) == 1:
                 info(f"Starting attempt {i} on opening window for course {course.ID}.")
                 course_data[5].click()
+                sleep(args.windowCheckWait)
 
                 i += 1
                 if len(driver.window_handles) != 1:
