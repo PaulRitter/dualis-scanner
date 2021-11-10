@@ -38,9 +38,9 @@ def get_parser() -> ArgumentParser:
     parser.add_argument("--logDir", type=str, help="The dir to which logs are written.")
     parser.add_argument("-v", action="store_true", help="Set to enable verbose logging.")
     parser.add_argument("--dry", action="store_true", help="Set if you dont want to return any data.")
-    parser.add_argument("--windowChecks", type=int, default=4, help="How many times you'd like for the scanner to check for a window to open on each attempt.")
+    parser.add_argument("--windowChecks", type=int, default=5, help="How many times you'd like for the scanner to check for a window to open on each attempt.")
     parser.add_argument("--windowTries", type=int, default=3, help="How many times you'd like for the scanner to retry opening a window.")
-    parser.add_argument("--windowCheckWait", type=float, default=0.25, help = "Amount of seconds the scanner should wait until trying to check for an open window again.")
+    parser.add_argument("--windowCheckWait", type=float, default=0.1, help = "Amount of seconds the scanner should wait until trying to check for an open window again.")
     parser.add_argument("--url", type=str, default="https://dualis.dhbw.de/", help="The dualis url to open.")
     return parser
 
