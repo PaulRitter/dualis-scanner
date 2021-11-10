@@ -43,6 +43,7 @@ def get_parser() -> ArgumentParser:
     parser.add_argument("--windowTries", type=int, default=3, help="How many times you'd like for the scanner to retry opening a window.")
     parser.add_argument("--windowCheckWait", type=float, default=0.1, help = "Amount of seconds the scanner should wait until trying to a open window again.")
     parser.add_argument("--url", type=str, default="https://dualis.dhbw.de/", help="The dualis url to open.")
+    parser.add_argument("--implicitWait", type=float, default=1, help="How long the driver should wait for contents to appear.")
     return parser
 
 
@@ -94,7 +95,7 @@ def get_courses(args) -> List[Course]:
         driver_dir = args.driver
     info(f"Using driverdir: {driver_dir}")
     driver = Chrome(executable_path=driver_dir, options=options)
-    driver.implicitly_wait(1)
+    driver.implicitly_wait(args.implicitWait)
 
     i = 0
     pageOpened = False
