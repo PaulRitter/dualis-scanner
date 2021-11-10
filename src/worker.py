@@ -41,9 +41,9 @@ def get_parser() -> ArgumentParser:
     parser.add_argument("-v", action="store_true", help="Set to enable verbose logging.")
     parser.add_argument("--dry", action="store_true", help="Set if you dont want to return any data.")
     parser.add_argument("--windowTries", type=int, default=3, help="How many times you'd like for the scanner to retry opening a window.")
-    parser.add_argument("--windowCheckWait", type=float, default=0.1, help = "Amount of seconds the scanner should wait until trying to a open window again.")
+    parser.add_argument("--windowCheckWait", type=float, default=0.01, help = "Amount of seconds the scanner should wait until trying to a open window again.")
     parser.add_argument("--url", type=str, default="https://dualis.dhbw.de/", help="The dualis url to open.")
-    parser.add_argument("--implicitWait", type=float, default=1, help="How long the driver should wait for contents to appear.")
+    parser.add_argument("--implicitWait", type=float, default=0.01, help="How long the driver should wait for contents to appear.")
     return parser
 
 
@@ -112,6 +112,7 @@ def get_courses(args) -> List[Course]:
             pass
 
         i += 1
+    retries = i
 
     if not pageOpened:
         msg = f"Dualis main page didn't open in {args.windowCheckWait} seconds during {args.windowTries} attempts."
@@ -161,6 +162,8 @@ def get_courses(args) -> List[Course]:
                 if len(driver.window_handles) != 1:
                     break
 
+            retries += i
+
             if len(driver.window_handles) == 1:
                 error(f"Window for course {course.ID} did not open after {args.WindowCheckWait} seconds over {args.windowTries} attempts.")
                 continue
@@ -183,6 +186,7 @@ def get_courses(args) -> List[Course]:
             driver.switch_to.window(main_window)
 
     info("Successfully parsed all exams. Shutting down driver.")
+    info(f"Retries needed: {retries}")
 
     driver.close()
     driver.quit()
