@@ -94,6 +94,7 @@ def get_courses(args) -> List[Course]:
         driver_dir = args.driver
     info(f"Using driverdir: {driver_dir}")
     driver = Chrome(executable_path=driver_dir, options=options)
+    driver.implicitly_wait(1)
 
     i = 0
     pageOpened = False
