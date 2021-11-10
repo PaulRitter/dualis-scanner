@@ -8,10 +8,12 @@ from typing import List
 from .models.course import CourseCompletion
 from logging import basicConfig, info, exception, error, INFO, WARN
 from datetime import datetime
-from time import time, sleep
+from time import sleep
 from enum import Enum
 from json import dumps
 from sys import stderr
+from os import mkdir
+from os.path import isdir
 
 
 class STATUSCODE(Enum):
@@ -38,9 +40,8 @@ def get_parser() -> ArgumentParser:
     parser.add_argument("--logDir", type=str, help="The dir to which logs are written.")
     parser.add_argument("-v", action="store_true", help="Set to enable verbose logging.")
     parser.add_argument("--dry", action="store_true", help="Set if you dont want to return any data.")
-    parser.add_argument("--windowChecks", type=int, default=5, help="How many times you'd like for the scanner to check for a window to open on each attempt.")
     parser.add_argument("--windowTries", type=int, default=3, help="How many times you'd like for the scanner to retry opening a window.")
-    parser.add_argument("--windowCheckWait", type=float, default=0.1, help = "Amount of seconds the scanner should wait until trying to check for an open window again.")
+    parser.add_argument("--windowCheckWait", type=float, default=0.1, help = "Amount of seconds the scanner should wait until trying to a open window again.")
     parser.add_argument("--url", type=str, default="https://dualis.dhbw.de/", help="The dualis url to open.")
     return parser
 
@@ -55,6 +56,9 @@ def main():
         level = WARN
 
     if args.logDir is not None:
+        if not isdir(args.logDir):
+            mkdir(args.logDir)
+
         #todo logfolder should contain useruid at some point
         basicConfig(level=level, filename=f"{args.logDir}/{datetime.now().strftime('%Y%m%d-%H%M%S')}.log")
     else:
@@ -90,7 +94,7 @@ def get_courses(args) -> List[Course]:
         driver_dir = args.driver
     info(f"Using driverdir: {driver_dir}")
     driver = Chrome(executable_path=driver_dir, options=options)
-    driver.implicitly_wait(1)
+    driver.implicitly_wait(args.windowCheckWait)
 
     i = 0
     pageOpened = False
@@ -98,22 +102,17 @@ def get_courses(args) -> List[Course]:
         info(f"Starting attempt {i} of opening the main page.")
         driver.get(args.url)
 
-        j = 0
-        while j < args.windowChecks:
-            try:
-                driver.find_element(By.ID, "field_user").send_keys(args.uname[0])
-                pageOpened = True
-                break
-            except NoSuchElementException:
-                j += 1
-                sleep(args.windowCheckWait)
+        try:
+            driver.find_element(By.ID, "field_user").send_keys(args.uname[0])
+            pageOpened = True
+            break
+        except NoSuchElementException and i+1 < args.windowTries:
+            sleep(args.windowCheckWait)
 
         i += 1
-        if pageOpened:
-            break
 
     if not pageOpened:
-        msg = f"Dualis main page didn't open in {args.windowChecks * args.windowCheckWait} seconds during {args.windowTries} attempts."
+        msg = f"Dualis main page didn't open in {args.windowCheckWait} seconds during {args.windowTries} attempts."
         error(msg)
         doErrorExit(STATUSCODE.CRASH, msg)
 
@@ -155,12 +154,10 @@ def get_courses(args) -> List[Course]:
                 info(f"Starting attempt {i} on opening window for course {course.ID}.")
                 course_data[5].click()
 
-                j = 0
-                while j < args.windowChecks and len(driver.window_handles) == 1:
-                    sleep(args.windowCheckWait)
-                    j += 1
                 i += 1
-                if len(driver.window_handles) != 1:
+                if len(driver.window_handles) == 1 and i < args.windowTries:
+                    sleep(args.windowCheckWait)
+                else:
                     break
 
             if len(driver.window_handles) == 1:
