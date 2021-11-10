@@ -16,6 +16,10 @@ from os import mkdir
 from os.path import isdir
 
 
+UNAME_VAR_NAME = "uname"
+PWD_VAR_NAME = "pwd"
+
+
 class STATUSCODE(Enum):
     OK = 0
     INVALID_LOGIN = -1
@@ -34,8 +38,8 @@ def doErrorExit(code: STATUSCODE, msg: str = None):
 
 def get_parser() -> ArgumentParser:
     parser = ArgumentParser("dualis-scanner-worker")
-    parser.add_argument("uname", nargs=1, help="Username for dualis login.")
-    parser.add_argument("pwd", nargs=1, type=str, help="Password for dualis login.")
+    parser.add_argument(UNAME_VAR_NAME, nargs=1, help="Username for dualis login.")
+    parser.add_argument(PWD_VAR_NAME, nargs=1, type=str, help="Password for dualis login.")
     parser.add_argument("--driver", type=str, help="The dir to find the chromedriver executable at.")
     parser.add_argument("--logDir", type=str, help="The dir to which logs are written.")
     parser.add_argument("-v", action="store_true", help="Set to enable verbose logging.")
@@ -64,6 +68,11 @@ def main():
         basicConfig(level=level, filename=f"{args.logDir}/{datetime.now().strftime('%Y%m%d-%H%M%S')}.log")
     else:
         basicConfig(level=level)
+
+    args_dict = dict(vars(args))
+    del args_dict[UNAME_VAR_NAME]
+    del args_dict[PWD_VAR_NAME]
+    info(f"Using args: {args_dict}")
 
     try:
         data = get_courses(args)
@@ -113,6 +122,7 @@ def get_courses(args) -> List[Course]:
 
         i += 1
     retries = i
+    failures = 0
 
     if not pageOpened:
         msg = f"Dualis main page didn't open in {args.windowCheckWait} seconds during {args.windowTries} attempts."
@@ -166,6 +176,7 @@ def get_courses(args) -> List[Course]:
 
             if len(driver.window_handles) == 1:
                 error(f"Window for course {course.ID} did not open after {args.WindowCheckWait} seconds over {args.windowTries} attempts.")
+                failures += 1
                 continue
 
             driver.switch_to.window(driver.window_handles[1])
@@ -186,7 +197,8 @@ def get_courses(args) -> List[Course]:
             driver.switch_to.window(main_window)
 
     info("Successfully parsed all exams. Shutting down driver.")
-    info(f"Retries needed: {retries}")
+    info(f"Retries: {retries}")
+    info(f"Failures: {failures}")
 
     driver.close()
     driver.quit()
