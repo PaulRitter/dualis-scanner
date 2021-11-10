@@ -106,8 +106,8 @@ def get_courses(args) -> List[Course]:
             driver.find_element(By.ID, "field_user").send_keys(args.uname[0])
             pageOpened = True
             break
-        except NoSuchElementException and i+1 < args.windowTries:
-            sleep(args.windowCheckWait)
+        except NoSuchElementException:
+            pass
 
         i += 1
 
@@ -155,13 +155,11 @@ def get_courses(args) -> List[Course]:
                 course_data[5].click()
 
                 i += 1
-                if len(driver.window_handles) == 1 and i < args.windowTries:
-                    sleep(args.windowCheckWait)
-                else:
+                if len(driver.window_handles) != 1:
                     break
 
             if len(driver.window_handles) == 1:
-                error(f"Window for course {course.ID} did not open after {args.windowChecks * args.WindowCheckWait} seconds over {args.windowTries} attempts.")
+                error(f"Window for course {course.ID} did not open after {args.WindowCheckWait} seconds over {args.windowTries} attempts.")
                 continue
 
             driver.switch_to.window(driver.window_handles[1])
