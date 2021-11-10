@@ -38,9 +38,9 @@ def get_parser() -> ArgumentParser:
     parser.add_argument("--logDir", type=str, help="The dir to which logs are written.")
     parser.add_argument("-v", action="store_true", help="Set to enable verbose logging.")
     parser.add_argument("--dry", action="store_true", help="Set if you dont want to return any data.")
-    parser.add_argument("--windowTimeout", type=int, default=10, help="How much time you'd like for the scanner to wait for a window to open on each attempt.")
+    parser.add_argument("--windowChecks", type=int, default=4, help="How many times you'd like for the scanner to check for a window to open on each attempt.")
     parser.add_argument("--windowTries", type=int, default=3, help="How many times you'd like for the scanner to retry opening a window.")
-    parser.add_argument("--windowCheckWait", type=float, default=0.25, help = "Amount of seconds the scanner should wait until trying to check for an open window again. Cannot be bigger than the windowtimeout value.")
+    parser.add_argument("--windowCheckWait", type=float, default=0.25, help = "Amount of seconds the scanner should wait until trying to check for an open window again.")
     parser.add_argument("--url", type=str, default="https://dualis.dhbw.de/", help="The dualis url to open.")
     return parser
 
@@ -48,11 +48,6 @@ def get_parser() -> ArgumentParser:
 def main():
     argParser = get_parser()
     args = argParser.parse_args()
-
-    if args.windowCheckWait > args.windowTimeout:
-        msg = "windowCheckWait is larger than windowTimeout."
-        error(msg)
-        doErrorExit(STATUSCODE.CRASH, msg)
 
     if args.v:
         level = INFO
@@ -103,13 +98,14 @@ def get_courses(args) -> List[Course]:
         info(f"Starting attempt {i} of opening the main page.")
         driver.get(args.url)
 
-        timeout = time()+args.windowTimeout
-        while time() < timeout:
+        j = 0
+        while j < args.windowChecks:
             try:
                 driver.find_element(By.ID, "field_user").send_keys(args.uname[0])
                 pageOpened = True
                 break
             except NoSuchElementException:
+                j += 1
                 sleep(args.windowCheckWait)
 
         i += 1
@@ -117,7 +113,7 @@ def get_courses(args) -> List[Course]:
             break
 
     if not pageOpened:
-        msg = f"Dualis main page didn't open in {args.windowTimeout} seconds during {args.windowTries} attempts."
+        msg = f"Dualis main page didn't open in {args.windowChecks * args.windowCheckWait} seconds during {args.windowTries} attempts."
         error(msg)
         doErrorExit(STATUSCODE.CRASH, msg)
 
@@ -159,15 +155,16 @@ def get_courses(args) -> List[Course]:
                 info(f"Starting attempt {i} on opening window for course {course.ID}.")
                 course_data[5].click()
 
-                timeout = time()+args.windowTimeout
-                while time() < timeout and len(driver.window_handles) == 1:
+                j = 0
+                while j < args.windowChecks and len(driver.window_handles) == 1:
                     sleep(args.windowCheckWait)
+                    j += 1
                 i += 1
                 if len(driver.window_handles) != 1:
                     break
 
             if len(driver.window_handles) == 1:
-                error(f"Window for course {course.ID} did not open after {args.windowTimeout} seconds over {args.windowTries} attempts.")
+                error(f"Window for course {course.ID} did not open after {args.windowChecks * args.WindowCheckWait} seconds over {args.windowTries} attempts.")
                 continue
 
             driver.switch_to.window(driver.window_handles[1])
