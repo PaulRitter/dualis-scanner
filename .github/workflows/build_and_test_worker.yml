@@ -19,7 +19,7 @@ jobs:
   deploy:
     if: ${{ github.event_name == 'push' }}
     needs: build
-      steps:
+    steps:
       - name: Deploy worker
         uses: appleboy/ssh-action@master
         with:
