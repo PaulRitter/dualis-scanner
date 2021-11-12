@@ -96,7 +96,7 @@ def get_int(string: str) -> int:
 def get_float(string: str) -> float:
     grade = -1
     try:
-        grade = float(string)
+        grade = float(string.replace(',', '.'))
     except ValueError:
         pass
     return grade
@@ -162,12 +162,12 @@ def get_courses(args) -> List[Course]:
         for course in driver.find_elements(By.XPATH, "/html/body/div[3]/div[3]/div[2]/div[2]/div/table/tbody/tr")[:-1]:
             course_data = course.find_elements(By.TAG_NAME, "td")
             completion = CourseCompletion.Unknown
-            if course_data[4].text != "":
-                if course_data[4].text == "bestanden":
+            if course_data[4].text.strip() != "":
+                if course_data[4].text.strip() == "bestanden":
                     completion = CourseCompletion.Passed
                 else:
                     completion = CourseCompletion.Failed
-            course = Course(course_data[0].text, course_data[1].text, get_float(course_data[2].text), get_float(course_data[3].text), completion, [])
+            course = Course(course_data[0].text.strip(), course_data[1].text.strip(), get_float(course_data[2].text), get_float(course_data[3].text), completion, [])
             info(f"Parsing course {course_data[0].text}")
 
             i = 0
@@ -193,7 +193,7 @@ def get_courses(args) -> List[Course]:
             exams = list()
             attempt = -1
             for exam in driver.find_elements(By.XPATH, "/html/body/div/form/table[1]/tbody/tr"):
-                exam_data = [x.text for x in exam.find_elements(By.TAG_NAME, "td")]
+                exam_data = [x.text.strip() for x in exam.find_elements(By.TAG_NAME, "td")]
                 exam_data_len = len(exam_data)
 
                 if exam_data_len == 6:
