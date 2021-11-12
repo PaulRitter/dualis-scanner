@@ -64,7 +64,6 @@ def main():
         if not isdir(args.logDir):
             mkdir(args.logDir)
 
-        #todo logfolder should contain useruid at some point
         basicConfig(level=level, filename=f"{args.logDir}/{datetime.now().strftime('%Y%m%d-%H%M%S')}.log")
     else:
         basicConfig(level=level)
