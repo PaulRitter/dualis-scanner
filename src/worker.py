@@ -12,7 +12,7 @@ from time import sleep
 from enum import Enum
 from json import dumps
 from sys import stderr
-from os import mkdir
+from os import makedirs
 from os.path import isdir
 
 
@@ -62,7 +62,7 @@ def main():
 
     if args.logDir is not None:
         if not isdir(args.logDir):
-            mkdir(args.logDir)
+            makedirs(args.logDir)
 
         basicConfig(level=level, filename=f"{args.logDir}/{datetime.now().strftime('%Y%m%d-%H%M%S')}.log")
     else:
