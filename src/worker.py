@@ -193,10 +193,11 @@ def get_courses(args) -> List[Course]:
             exams = list()
             attempt = -1
             for exam in driver.find_elements(By.XPATH, "/html/body/div/form/table[1]/tbody/tr"):
-                exam_data = [x.text.strip() for x in exam.find_elements(By.TAG_NAME, "td")]
+                exam_elements = exam.find_elements(By.TAG_NAME, "td")
+                exam_data = [x.text.strip() for x in exam_elements]
                 exam_data_len = len(exam_data)
 
-                if exam_data_len == 6:
+                if exam_data_len == 6 and "tbdata" in exam_elements[0].get_attribute("class"):
                     exams.append(Exam(attempt, exam_data[0], exam_data[1], exam_data[2], get_float(exam_data[3])))
                     continue
 
