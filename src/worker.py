@@ -14,6 +14,7 @@ from json import dumps
 from sys import stderr
 from os import makedirs
 from os.path import isdir
+from base64 import b64decode
 
 
 UNAME_VAR_NAME = "uname"
@@ -48,6 +49,7 @@ def get_parser() -> ArgumentParser:
     parser.add_argument("--windowCheckWait", type=float, default=1, help="Amount of seconds the scanner should wait until trying to a open window again.")
     parser.add_argument("--url", type=str, default="https://dualis.dhbw.de/", help="The dualis url to open.")
     parser.add_argument("--implicitWait", type=float, default=0.1, help="How long the driver should wait for contents to appear.")
+    parser.add_argument("--base64", action="store_true", help="Set if you want to pass the credentials as base64-encrypted strings.")
     return parser
 
 
@@ -116,13 +118,19 @@ def get_courses(args) -> List[Course]:
 
     i = 0
     pageOpened = False
+    uname = args.uname[0]
+    if args.base64:
+        uname = b64decode(uname).decode("utf-8")
+    pwd = args.pwd[0]
+    if args.base64:
+        pwd = b64decode(pwd).decode("utf-8")
     while i < args.windowTries:
         info(f"Starting attempt {i} of opening the main page.")
         driver.get(args.url)
         sleep(args.windowCheckWait)
 
         try:
-            driver.find_element(By.ID, "field_user").send_keys(args.uname[0])
+            driver.find_element(By.ID, "field_user").send_keys(uname)
             pageOpened = True
             break
         except NoSuchElementException:
@@ -137,7 +145,7 @@ def get_courses(args) -> List[Course]:
         error(msg)
         doErrorExit(STATUSCODE.CRASH, msg)
 
-    driver.find_element(By.ID, "field_pass").send_keys(args.pwd[0])
+    driver.find_element(By.ID, "field_pass").send_keys(pwd)
     driver.find_element(By.ID, "logIn_btn").click()
 
     try:
