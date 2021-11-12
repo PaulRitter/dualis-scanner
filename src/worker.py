@@ -85,7 +85,16 @@ def main():
     exit(STATUSCODE.OK.value)
 
 
-def get_grade(string: str) -> float:
+def get_int(string: str) -> int:
+    val = -1
+    try:
+        val = int(string)
+    except ValueError:
+        pass
+    return val
+
+
+def get_float(string: str) -> float:
     grade = -1
     try:
         grade = float(string)
@@ -159,7 +168,7 @@ def get_courses(args) -> List[Course]:
                     completion = CourseCompletion.Passed
                 else:
                     completion = CourseCompletion.Failed
-            course = Course(course_data[0].text, course_data[1].text, get_grade(course_data[2].text), get_grade(course_data[3].text), completion, [])
+            course = Course(course_data[0].text, course_data[1].text, get_float(course_data[2].text), get_float(course_data[3].text), completion, [])
             info(f"Parsing course {course_data[0].text}")
 
             i = 0
@@ -183,17 +192,31 @@ def get_courses(args) -> List[Course]:
 
             info("Parsing exams.")
             exams = list()
-            for exam in driver.find_elements(By.XPATH, "/html/body/div/form/table[1]/tbody/tr[count(./td) = 6]")[:-1]:
-                exam_data = exam.find_elements(By.TAG_NAME, "td")
+            attempt = -1
+            for exam in driver.find_elements(By.XPATH, "/html/body/div/form/table[1]/tbody/tr"):
+                exam_data = [x.text for x in exam.find_elements(By.TAG_NAME, "td")]
+                exam_data_len = len(exam_data)
 
-                #todo attemptnum
-                exams.append(Exam(1, exam_data[0].text, exam_data[1].text, exam_data[2].text, get_grade(exam_data[3].text)))
+                if exam_data_len == 6:
+                    exams.append(Exam(attempt, exam_data[0], exam_data[1], exam_data[2], get_float(exam_data[3])))
+                    continue
+
+                if exam_data_len > 0 and exam_data[0].startswith("Versuch"):
+                    attempt = get_int(exam_data[0][8:])
 
             course.Exams = exams
             courses.append(course)
 
             info("Finished course. Closing window.")
-            driver.close()
+            if len(driver.window_handles) > 2:
+                info(f"Too many open windows ({len(driver.window_handles)}). Fixing.")
+                for window in driver.window_handles:
+                    if window == main_window:
+                        continue
+                    driver.switch_to.window(window)
+                    driver.close()
+            else:
+                driver.close()
             driver.switch_to.window(main_window)
 
     info("Successfully parsed all exams. Shutting down driver.")
